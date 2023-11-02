@@ -15,6 +15,7 @@ import ObjectFieldTemplate from './ObjectFieldTemplate';
 import TitleField from './TitleField';
 import UnsupportedField from './UnsupportedField';
 import WrapIfAdditionalTemplate from './WrapIfAdditionalTemplate';
+import MultiSchemaFieldTemplate from './MultiSchemaTemplate';
 
 function templates<T = any, S extends StrictRJSFSchema = RJSFSchema, F extends FormContextType = any>(): TemplatesType<
   T,
@@ -37,6 +38,8 @@ function templates<T = any, S extends StrictRJSFSchema = RJSFSchema, F extends F
     TitleFieldTemplate: TitleField,
     UnsupportedFieldTemplate: UnsupportedField,
     WrapIfAdditionalTemplate,
+    AnyOfFieldTemplate: MultiSchemaFieldTemplate,
+    OneOfFieldTemplate: MultiSchemaFieldTemplate,
   };
 }
 

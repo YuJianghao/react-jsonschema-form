@@ -269,6 +269,9 @@ export interface TemplatesType<T = any, S extends StrictRJSFSchema = RJSFSchema,
   UnsupportedFieldTemplate: ComponentType<UnsupportedFieldProps<T, S, F>>;
   /** The template to use for rendering a field that allows a user to add additional properties */
   WrapIfAdditionalTemplate: ComponentType<WrapIfAdditionalTemplateProps<T, S, F>>;
+  // TODO add comment
+  /** The template to use for rendering a AnyOfField */
+  AnyOfFieldTemplate: ComponentType<any>;
   /** The set of templates associated with buttons in the form */
   ButtonTemplates: {
     /** The template to use for the main `Submit` button  */
@@ -678,6 +681,26 @@ export type WrapIfAdditionalTemplateProps<
   | 'onDropPropertyClick'
   | 'registry'
 >;
+
+/** TODO */
+export type MultiSchemaFieldTemplateProps<
+  T = any,
+  S extends StrictRJSFSchema = RJSFSchema,
+  F extends FormContextType = any
+> = {
+  /** TODO */
+  content: ReactNode;
+  select: {
+    id: string;
+    name: string;
+    value: number | undefined;
+    enumOptions: {
+      label: string;
+      value: number;
+    }[];
+    onChange: (option?: string | undefined) => void;
+  };
+} & Omit<FieldProps<T, S, F>, 'onChange'>;
 
 /** The properties that are passed to a Widget implementation */
 export interface WidgetProps<T = any, S extends StrictRJSFSchema = RJSFSchema, F extends FormContextType = any>

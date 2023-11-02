@@ -1,6 +1,5 @@
 import { Component } from 'react';
 import get from 'lodash/get';
-import isEmpty from 'lodash/isEmpty';
 import omit from 'lodash/omit';
 import {
   deepEquals,
@@ -8,12 +7,13 @@ import {
   FieldProps,
   FormContextType,
   getDiscriminatorFieldFromSchema,
+  getTemplate,
   getUiOptions,
-  getWidget,
   mergeSchemas,
   RJSFSchema,
   StrictRJSFSchema,
   TranslatableString,
+  MultiSchemaFieldTemplateProps,
 } from '@rjsf/utils';
 
 /** Type used for the state of the `AnyOfField` component */
@@ -138,33 +138,13 @@ class AnyOfField<T = any, S extends StrictRJSFSchema = RJSFSchema, F extends For
   /** Renders the `AnyOfField` selector along with a `SchemaField` for the value of the `formData`
    */
   render() {
-    const {
-      name,
-      disabled = false,
-      errorSchema = {},
-      formContext,
-      onBlur,
-      onFocus,
-      registry,
-      schema,
-      uiSchema,
-    } = this.props;
-
-    const { widgets, fields, translateString, globalUiOptions, schemaUtils } = registry;
+    const { name, errorSchema = {}, registry, schema, title, uiSchema } = this.props;
+    const { fields, translateString, globalUiOptions } = registry;
     const { SchemaField: _SchemaField } = fields;
     const { selectedOption, retrievedOptions } = this.state;
-    const {
-      widget = 'select',
-      placeholder,
-      autofocus,
-      autocomplete,
-      title = schema.title,
-      ...uiOptions
-    } = getUiOptions<T, S, F>(uiSchema, globalUiOptions);
-    const Widget = getWidget<T, S, F>({ type: 'number' }, widget, widgets);
+    const uiOptions = getUiOptions<T, S, F>(uiSchema, globalUiOptions);
     const rawErrors = get(errorSchema, ERRORS_KEY, []);
     const fieldErrorSchema = omit(errorSchema, [ERRORS_KEY]);
-    const displayLabel = schemaUtils.getDisplayLabel(schema, uiSchema, globalUiOptions);
 
     const option = selectedOption >= 0 ? retrievedOptions[selectedOption] || null : null;
     let optionSchema: S;
@@ -185,35 +165,27 @@ class AnyOfField<T = any, S extends StrictRJSFSchema = RJSFSchema, F extends For
       value: index,
     }));
 
-    return (
-      <div className='panel panel-default panel-body'>
-        <div className='form-group'>
-          <Widget
-            id={this.getFieldId()}
-            name={`${name}${schema.oneOf ? '__oneof_select' : '__anyof_select'}`}
-            schema={{ type: 'number', default: 0 } as S}
-            onChange={this.onOptionChange}
-            onBlur={onBlur}
-            onFocus={onFocus}
-            disabled={disabled || isEmpty(enumOptions)}
-            multiple={false}
-            rawErrors={rawErrors}
-            errorSchema={fieldErrorSchema}
-            value={selectedOption >= 0 ? selectedOption : undefined}
-            options={{ enumOptions, ...uiOptions }}
-            registry={registry}
-            formContext={formContext}
-            placeholder={placeholder}
-            autocomplete={autocomplete}
-            autofocus={autofocus}
-            label={title ?? name}
-            hideLabel={!displayLabel}
-          />
-        </div>
-        {option !== null && <_SchemaField {...this.props} schema={optionSchema!} />}
-      </div>
-    );
+    const multiSchemaFieldTemplateProps: MultiSchemaFieldTemplateProps = {
+      ...omit(this.props, ['onChange']),
+      errorSchema: fieldErrorSchema,
+      rawErrors,
+      select: {
+        id: this.getFieldId(),
+        name: `${name}${schema.oneOf ? '__oneof_select' : '__anyof_select'}`,
+        value: selectedOption >= 0 ? selectedOption : undefined,
+        enumOptions,
+        onChange: this.onOptionChange,
+      },
+      content: option !== null && <_SchemaField {...this.props} schema={optionSchema!} />,
+    };
+
+    const Template = getTemplate('AnyOfFieldTemplate', registry, uiOptions);
+
+    return <Template {...multiSchemaFieldTemplateProps} />;
   }
 }
 
 export default AnyOfField;
+
+// TODO 应该传哪些 props 给 template？
+// TODO 同时支持 oneOf 和 anyOf
